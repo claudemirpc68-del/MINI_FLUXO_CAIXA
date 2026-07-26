@@ -1,0 +1,39 @@
+O programa tem como objetivo o controle e automação de toda a parte comercial de pequenas e micro empresas de comercio em geral.Com automação para frente de caixa (PDV) e retaguarda. 
+Frente de Cixa
+Tela de vendas simples e rápida similar à encontrada em supermercados
+Venda através de leitor de código de barras ou pesquisa rápida por descrição via teclado 
+Emissão de cupom não fiscal
+Baixa de estoque
+Consulta de preços
+Consulta de movimentação de caixa 
+Crediário
+Integração com balanças
+Compatível com gaveta eletrônica (Menno MGI 40AC saída serial) controlada pelo software com senha do operador do PDV
+Funcional em 1 computador independente ou rede
+Retaguarda
+Cadastro de Clientes
+Cadastro de fornecedores
+Cadastro de produtos
+Controle de estoque integrado
+Contas a pagar/receber
+Fluxo de caixa
+Acesso ao fechamento de caixa geral por grupo de PDV
+Entrada de mercadorias
+Diversos relatórios gerenciais
+Gráficos de estatísticas de vendas e crescimento por período
+Backup
+
+
+Indicado para:
+Mini -Mercados
+Bazar e Papelarias
+Padarias
+Lojas em geral (calçados, bijuterias, doces, discos, depósitos matérias construção)
+
+
+
+
+
+
+IREMOS COPIAR DESSE DESENVOLVEDOR ( VELOZ PDV)
+IREMOS CRIAR OUTRO NOME: MY FLUXO DE CAIXA
