@@ -257,18 +257,35 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="font-bold text-slate-300 block mb-1">Quantidade Recebida *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={entryQtyStr}
-                    onChange={(e) => setEntryQtyStr(e.target.value)}
-                    placeholder="Ex: 50"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold"
-                  />
-                </div>
+                {(() => {
+                  const selProd = products.find((p) => p.id === selectedProductId);
+                  const isDecimalUnit = selProd?.unit === 'KG' || selProd?.unit === 'LT';
+                  return (
+                    <div>
+                      <label className="font-bold text-slate-300 block mb-1">
+                        Quantidade Recebida {isDecimalUnit ? '(Decimais/Peso)' : '(Inteiros)'} *
+                      </label>
+                      <input
+                        type="number"
+                        step={isDecimalUnit ? '0.001' : '1'}
+                        min="0.001"
+                        required
+                        value={entryQtyStr}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          if (isDecimalUnit) {
+                            setEntryQtyStr(raw);
+                          } else {
+                            const val = parseInt(raw, 10);
+                            setEntryQtyStr(isNaN(val) ? '' : val.toString());
+                          }
+                        }}
+                        placeholder={isDecimalUnit ? 'Ex: 12.500' : 'Ex: 50'}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold"
+                      />
+                    </div>
+                  );
+                })()}
 
                 <div>
                   <label className="font-bold text-slate-300 block mb-1">Novo Preço Custo (Opcional R$)</label>

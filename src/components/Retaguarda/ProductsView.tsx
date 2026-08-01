@@ -12,6 +12,8 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { Product } from '../../types';
+import { generateEAN13 } from '../../utils/eanGenerator';
+import EANImporter from '../EANImporter';
 
 interface ProductsViewProps {
   products: Product[];
@@ -27,6 +29,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('TODAS');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
 
   // Categories list
@@ -41,11 +44,11 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
   });
 
   const handleOpenAdd = () => {
-    // Auto generate realistic EAN-13 barcode
-    const randomEan = '789' + Math.floor(100000000 + Math.random() * 900000000).toString();
+    // Auto generate valid GS1 EAN-13 barcode
+    const validEan = generateEAN13('789');
     setEditingProduct({
       id: 'prod-' + Date.now(),
-      code: randomEan,
+      code: validEan,
       description: '',
       category: 'Mercearia',
       costPrice: 0,
@@ -55,6 +58,24 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
       unit: 'UN',
     });
     setIsModalOpen(true);
+  };
+
+  const handleImportCodes = (codes: string[]) => {
+    codes.forEach((code) => {
+      onSaveProduct({
+        id: 'prod-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+        code,
+        description: 'PRODUTO IMPORTADO ' + code.slice(-4),
+        category: 'Geral',
+        unit: 'UN',
+        costPrice: 0,
+        salePrice: 0,
+        stock: 10,
+        minStock: 2,
+        updatedAt: new Date().toISOString(),
+      });
+    });
+    setShowImporter(false);
   };
 
   const handleOpenEdit = (p: Product) => {
@@ -78,16 +99,31 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-100 tracking-tight">Cadastro & Gestão de Produtos</h2>
-          <p className="text-xs text-slate-400">Controle de estoque, preços de custo/venda e gerador de códigos de barra</p>
+          <p className="text-xs text-slate-400">Controle de estoque, preços de custo/venda e gerador de códigos EAN-13 profissionais</p>
         </div>
-        <button
-          onClick={handleOpenAdd}
-          className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 text-sm transition-all"
-        >
-          <Plus className="w-5 h-5" />
-          <span>NOVO PRODUTO</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowImporter(!showImporter)}
+            className="bg-emerald-700 hover:bg-emerald-600 text-white font-extrabold px-4 py-2.5 rounded-xl shadow-lg shadow-emerald-700/30 flex items-center gap-2 text-sm transition-all border border-emerald-500/30"
+          >
+            <Barcode className="w-4 h-4" />
+            <span>{showImporter ? 'Ocultar Importador' : '⚡ Importar EANs em Massa'}</span>
+          </button>
+          <button
+            onClick={handleOpenAdd}
+            className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 text-sm transition-all"
+          >
+            <Plus className="w-5 h-5" />
+            <span>NOVO PRODUTO</span>
+          </button>
+        </div>
       </div>
+
+      {showImporter && (
+        <div className="animate-in fade-in zoom-in duration-200">
+          <EANImporter onImport={handleImportCodes} />
+        </div>
+      )}
 
       {/* Filters Bar */}
       <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
@@ -220,9 +256,9 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                     />
                     <button
                       type="button"
-                      onClick={() => setEditingProduct({ ...editingProduct, code: '789' + Math.floor(100000000 + Math.random() * 900000000) })}
+                      onClick={() => setEditingProduct({ ...editingProduct, code: generateEAN13('789') })}
                       className="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl border border-slate-700 text-slate-300"
-                      title="Gerar EAN Aleatório"
+                      title="Gerar EAN-13 Válido (GS1 Módulo 10)"
                     >
                       <RefreshCw className="w-4 h-4" />
                     </button>
@@ -296,29 +332,60 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="font-bold text-slate-300 block mb-1">Estoque Atual</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={editingProduct.stock || 0}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, stock: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono"
-                  />
-                </div>
+                {(() => {
+                  const isDecimalUnit = editingProduct.unit === 'KG' || editingProduct.unit === 'LT';
+                  return (
+                    <>
+                      <div>
+                        <label className="font-bold text-slate-300 block mb-1">
+                          Estoque Atual {isDecimalUnit ? '(Decimais Permitidos)' : '(Apenas Inteiros)'}
+                        </label>
+                        <input
+                          type="number"
+                          step={isDecimalUnit ? '0.001' : '1'}
+                          min="0"
+                          required
+                          value={editingProduct.stock ?? 0}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (isDecimalUnit) {
+                              const val = parseFloat(raw);
+                              setEditingProduct({ ...editingProduct, stock: isNaN(val) ? 0 : val });
+                            } else {
+                              const val = parseInt(raw, 10);
+                              setEditingProduct({ ...editingProduct, stock: isNaN(val) ? 0 : val });
+                            }
+                          }}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono font-bold"
+                        />
+                      </div>
 
-                <div>
-                  <label className="font-bold text-slate-300 block mb-1">Estoque Mínimo (Alerta)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={editingProduct.minStock || 0}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, minStock: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-amber-400 font-mono"
-                  />
-                </div>
+                      <div>
+                        <label className="font-bold text-slate-300 block mb-1">
+                          Estoque Mínimo {isDecimalUnit ? '(Decimais Permitidos)' : '(Apenas Inteiros)'}
+                        </label>
+                        <input
+                          type="number"
+                          step={isDecimalUnit ? '0.001' : '1'}
+                          min="0"
+                          required
+                          value={editingProduct.minStock ?? 0}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (isDecimalUnit) {
+                              const val = parseFloat(raw);
+                              setEditingProduct({ ...editingProduct, minStock: isNaN(val) ? 0 : val });
+                            } else {
+                              const val = parseInt(raw, 10);
+                              setEditingProduct({ ...editingProduct, minStock: isNaN(val) ? 0 : val });
+                            }
+                          }}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-amber-400 font-mono font-bold"
+                        />
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 

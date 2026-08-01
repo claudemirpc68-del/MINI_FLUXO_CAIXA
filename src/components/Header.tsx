@@ -57,8 +57,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, setting
             <Building2 className="w-4 h-4" />
             <span>{settings.storeName}</span>
           </div>
-          <span className="text-slate-600">|</span>
-          <span className="text-slate-400">CNPJ: {settings.cnpj}</span>
+          <span className="text-slate-600 font-bold">|</span>
+          <span className="text-slate-400 font-mono">CNPJ: {settings.cnpj}</span>
         </div>
 
         <div className="flex items-center gap-4">
@@ -86,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, setting
             </div>
             <div>
               <h1 className="font-extrabold text-lg leading-tight bg-gradient-to-r from-blue-400 to-indigo-200 bg-clip-text text-transparent tracking-tight">
-                MY FLUXO DE CAIXA
+                SUPERMERCADOS PREÇO JUSTO
               </h1>
               <p className="text-[10px] text-slate-400 font-medium">PDV & Automação Comercial</p>
             </div>
